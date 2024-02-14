@@ -3,9 +3,9 @@ package ru.flamexander.december.chat.server;
 import java.sql.*;
 
 public class InMemoryUserService implements UserService {
-    private static final String JDBC_URL = "jdbc:mysql://your_database_url";
-    private static final String DB_USER = "your_database_user";
-    private static final String DB_PASSWORD = "your_database_password";
+    private static final String JDBC_URL = "jdbc:mysql://localhost:3306/test_user";
+    private static final String DB_USER = "postgres";
+    private static final String DB_PASSWORD = "postgres";
 
     private Connection connection;
 
