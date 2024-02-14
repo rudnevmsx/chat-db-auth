@@ -1,74 +1,114 @@
 package ru.flamexander.december.chat.server;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.sql.*;
 
 public class InMemoryUserService implements UserService {
-    class User {
-        private String login;
-        private String password;
-        private String username;
-        private String role;
+    private static final String JDBC_URL = "jdbc:postgres://localhost:3306/test_user";
+    private static final String DB_USER = "postgres";
+    private static final String DB_PASSWORD = "postgres";
 
-        public User(String login, String password, String username, String role) {
-            this.login = login;
-            this.password = password;
-            this.username = username;
-            this.role = role;
+    private Connection connection;
+
+    public void DatabaseUserService() {
+        try {
+            connection = DriverManager.getConnection(JDBC_URL, DB_USER, DB_PASSWORD);
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-    }
-
-    private List<User> users;
-
-    public InMemoryUserService() {
-        this.users = new ArrayList<>(Arrays.asList(
-                new User("login1", "pass1", "user1", "user"),
-                new User("login2", "pass2", "user2", "admin"),
-                new User("login3", "pass3", "user3", "user")
-        ));
     }
 
     @Override
     public String getUsernameByLoginAndPassword(String login, String password) {
-        for (User u : users) {
-            if (u.login.equals(login) && u.password.equals(password)) {
-                return u.username;
+        try {
+            String query = "SELECT username FROM users WHERE login=? AND password=?";
+            try (PreparedStatement statement = connection.prepareStatement(query)) {
+                statement.setString(1, login);
+                statement.setString(2, password);
+
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    if (resultSet.next()) {
+                        return resultSet.getString("username");
+                    }
+                }
             }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
         return null;
     }
 
     @Override
     public void createNewUser(String login, String password, String username, String role) {
-        users.add(new User(login, password, username, role));
+        try {
+            String query = "INSERT INTO users (login, password, username, role) VALUES (?, ?, ?, ?)";
+            try (PreparedStatement statement = connection.prepareStatement(query)) {
+                statement.setString(1, login);
+                statement.setString(2, password);
+                statement.setString(3, username);
+                statement.setString(4, role);
+
+                statement.executeUpdate();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     public boolean isLoginAlreadyExist(String login) {
-        for (User u : users) {
-            if (u.login.equals(login)) {
-                return true;
+        try {
+            String query = "SELECT COUNT(*) AS count FROM users WHERE login=?";
+            try (PreparedStatement statement = connection.prepareStatement(query)) {
+                statement.setString(1, login);
+
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    if (resultSet.next()) {
+                        return resultSet.getInt("count") > 0;
+                    }
+                }
             }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
         return false;
     }
 
     @Override
     public boolean isUsernameAlreadyExist(String username) {
-        for (User u : users) {
-            if (u.username.equals(username)) {
-                return true;
+        try {
+            String query = "SELECT COUNT(*) AS count FROM users WHERE username=?";
+            try (PreparedStatement statement = connection.prepareStatement(query)) {
+                statement.setString(1, username);
+
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    if (resultSet.next()) {
+                        return resultSet.getInt("count") > 0;
+                    }
+                }
             }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
         return false;
     }
 
-    public boolean isUserAdmin(String username){
-        for (User u : users) {
-            if (u.username.equals(username) && u.role.equals("admin"));
-            return true;
+    @Override
+    public boolean isUserAdmin(String username) {
+        try {
+            String query = "SELECT COUNT(*) AS count FROM users WHERE username=? AND role='admin'";
+            try (PreparedStatement statement = connection.prepareStatement(query)) {
+                statement.setString(1, username);
+
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    if (resultSet.next()) {
+                        return resultSet.getInt("count") > 0;
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
         return false;
     }
+
 }

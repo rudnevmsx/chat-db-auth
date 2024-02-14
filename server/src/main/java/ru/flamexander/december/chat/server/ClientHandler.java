@@ -43,6 +43,7 @@ public class ClientHandler {
                 if (message.startsWith("/w ")) {
                     // TODO homework chat part 1
                 }
+                // Кик пользователя
                 if (message.startsWith("/kick")) {
                     String[] words = message.split(" ");
                     if (words.length == 2) {

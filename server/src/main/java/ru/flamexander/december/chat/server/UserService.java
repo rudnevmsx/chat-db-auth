@@ -5,5 +5,7 @@ public interface UserService {
     void createNewUser(String login, String password, String username, String role);
     boolean isLoginAlreadyExist(String login);
     boolean isUsernameAlreadyExist(String username);
+
+    //Проверка админ ли юзер
     boolean isUserAdmin(String username);
 }
